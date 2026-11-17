@@ -61,25 +61,20 @@ class HostedAuth:
         return cls(url, _env_list(ALLOWED_EMAILS_ENV))
 
     def check(self, token: str) -> Verdict:
-        # YOUR TURN (block 3, piece 5): the sign-in check. About 12 lines.
-        #
-        # `token` is what the website sent. Answer one of three words.
-        #
-        # 1. An empty token is "invalid".
-        # 2. Decode the token with `jwt.decode`. Give it:
-        #      the token
-        #      the key:        self._key_lookup(token)
-        #      algorithms:     only "ES256"
-        #      audience:       "authenticated"
-        #      issuer:         self.supabase_url + "/auth/v1"
-        #      options:        {"require": ["exp", "aud", "iss"]}
-        #    It returns the facts in the token (the "claims") as a dictionary.
-        #    It raises an exception for a bad signature, an expired token, a
-        #    wrong audience or issuer, or a key that cannot be found. Catch
-        #    every exception and answer "invalid".
-        # 3. Take the claim "email". Strip the spaces and make it lower case.
-        #    Answer "ok" when it is in self.allowed_emails.
-        #    Answer "not_invited" in every other case, also for no email.
-        #
-        # Until you write it, nobody can sign in.
-        return "invalid"
+        if not token:
+            return "invalid"
+        try:
+            claims = jwt.decode(
+                token,
+                self._key_lookup(token),
+                algorithms=["ES256"],
+                audience="authenticated",
+                issuer=self.supabase_url + "/auth/v1",
+                options={"require": ["exp", "aud", "iss"]},
+            )
+        except Exception:
+            return "invalid"
+        email = (claims.get("email") or "").strip().lower()
+        if email in self.allowed_emails:
+            return "ok"
+        return "not_invited"
