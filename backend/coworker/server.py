@@ -1212,10 +1212,8 @@ def create_app(
     async def gate(request: Request, call_next):
         if request.method == "OPTIONS":
             return await call_next(request)
-        # YOUR TURN (block 2, piece 4): let the health address through.
-        # A request for the path "/healthz" needs no login and no origin
-        # check. Pass it on with `return await call_next(request)`, in the
-        # same way as the OPTIONS lines above.
+        if request.url.path == "/healthz":
+            return await call_next(request)
         if request.url.path in {"/v1/gmail/callback", "/v1/mcp/oauth/callback"}:
             return await call_next(request)
         if not _origin_allowed(request.headers.get("origin"), extra_origins):
@@ -1249,10 +1247,9 @@ def create_app(
         allow_headers=["*", TOKEN_HEADER],
     )
 
-    # YOUR TURN (block 2, piece 4): the health address.
-    # Add a GET route at "/healthz". It takes no arguments and returns the
-    # dictionary {"ok": True}. Railway calls it to learn that the server is
-    # alive. Look at the route below for the form.
+    @app.get("/healthz")
+    def healthz():
+        return {"ok": True}
 
     @app.get("/v1/health")
     def health():

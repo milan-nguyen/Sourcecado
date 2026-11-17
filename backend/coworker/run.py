@@ -122,18 +122,13 @@ def main(argv: list[str] | None = None) -> None:
     # Checked before any .env file is read: a public address needs the hosted
     # settings in the real environment (the host's service variables).
     if args.host not in ("127.0.0.1", "localhost"):
-        # YOUR TURN (block 2, piece 4): the safety rule for a public address.
-        #
-        # `missing_hosted_settings()` gives the names of the sign-in settings
-        # that are not set. When that list is not empty: print one line to
-        # sys.stderr and stop with exit code 2. The line is
-        #     refusing to bind off loopback: set NAME, NAME
-        # with the missing names joined by ", ". When the list is empty, do
-        # nothing: the server may start.
-        #
-        # Until you write it, the server refuses every public address.
-        print("refusing to bind off loopback: the check is not written yet", file=sys.stderr)
-        sys.exit(2)
+        missing = missing_hosted_settings()
+        if missing:
+            print(
+                "refusing to bind off loopback: set " + ", ".join(missing),
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
     _load_dotenv(state_dir() / ".env")
     _load_dotenv(Path(__file__).resolve().parent.parent / ".env")
