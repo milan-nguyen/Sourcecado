@@ -27,30 +27,20 @@ create table meeting_evidence (
 create index meeting_evidence_user_person_idx
     on meeting_evidence (user_id, person_id);
 
--- YOUR TURN (block 1, piece 2): write the table `meeting_candidates`.
---
--- It records that one meeting may belong to one person. Write three things.
---
--- 1. The table, with these columns, in this order. None may be null.
---      user_id        the owner: a uuid that refers to auth.users(id),
---                     and the row goes when that user is deleted
---      evidence_id    text
---      person_id      text
---      status         text
---      match_reason   text
---      updated_at     text
---    Every text column sorts by bytes: add  collate "C"  after  text.
---    The primary key is (user_id, evidence_id, person_id).
---
--- 2. An index named meeting_candidates_user_person_idx
---    on (user_id, person_id).
---
--- 3. At the end of this file there is a second YOUR TURN line: switch on
---    row-level security for this table.
---
--- The table `meeting_evidence` above is a full example of the same rules.
+create table meeting_candidates (
+    user_id uuid not null references auth.users(id) on delete cascade,
+    evidence_id text collate "C" not null,
+    person_id text collate "C" not null,
+    status text collate "C" not null,
+    match_reason text collate "C" not null,
+    updated_at text collate "C" not null,
+    primary key (user_id, evidence_id, person_id)
+);
+
+create index meeting_candidates_user_person_idx
+    on meeting_candidates (user_id, person_id);
 
 -- Row-level security on, with no policy: the public API keys see no rows.
 -- The backend connects as the table owner, so it is not affected.
 alter table meeting_evidence enable row level security;
--- YOUR TURN (block 1, piece 2): the same line for meeting_candidates.
+alter table meeting_candidates enable row level security;
